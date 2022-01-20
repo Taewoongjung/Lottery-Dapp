@@ -21,6 +21,8 @@ contract Lottery {
     uint256 constant internal BET_AMOUNT = 5 * 10 ** 15; // 0.005ETH
     uint256 private _pot;
 
+    event BET(uint256 index, address bettor, uint256 amount, byte challenge, uint256 answerBlockNumber);
+
     /* 
         스마트 컨트랙트가 생성이 될 때(배포가 될 때) 가장 처음 실행되는 함수인데, 
         배포가 될 때 보낸 사람(msg.sender)으로 owner를 저장하는 의미이다.
@@ -29,17 +31,30 @@ contract Lottery {
         owner = msg.sender;
     }
 
-    // truffle 사용해서 스마트 컨트랙터랑 상호작용 하는 것을 보여준다.
-    function getSomeValue() public pure returns (uint256 value) {
-        return 5;
-    }
-
     // pot에 대한 getter
     function getPot() public view returns (uint256 value) { // 스마트 컨트랙트에 있는 변수를 줘야하는 수식어는 "view"가 들어가야한다
         return _pot;
     }
 
-    // Bet
+    // Bet - 배팅하는 함수
+    /**
+     *  @dev 배팅을 한다. 유저는 0.005 ETH를 보내야 하고, 베팅을 1 byte 글자를 보낸다.
+        큐에 저장된 배팅 정보는 이후 distribute 함수에서 해결된다.
+     *  @param challenges 유저가 배팅하는 글자
+     *  @return 함수가 잘 수행되었는지 확인하는 bool 값
+     */
+    function bet(byte challenges) public payable returns (bool result) {
+        // check the proper ether is sent
+        require(msg.value == BET_AMOUNT, "Not enough ETH"); // 들어 온 돈에 대해서 확인할 수 있는게 msg.value 이다.
+        
+        // push bet to the queue
+        require(pushBet(challenges), "Fail to add a new Bet Info");
+
+        // emit event
+        emit BET(_tail - 1, msg.sender, msg.value, challenges, block.number + BET_BLOCK_INTERVAL);
+        
+        return true;
+    }
         // save the bet to the queue
 
     // Distribute
