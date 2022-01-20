@@ -21,7 +21,7 @@ contract Lottery {
     uint256 constant internal BET_AMOUNT = 5 * 10 ** 15; // 0.005ETH
     uint256 private _pot;
 
-    event BET(uint256 index, address bettor, uint256 amount, byte challenge, uint256 answerBlockNumber);
+    event BET(uint256 index, address bettor, uint256 amount, byte challenges, uint256 answerBlockNumber);
 
     /* 
         스마트 컨트랙트가 생성이 될 때(배포가 될 때) 가장 처음 실행되는 함수인데, 
@@ -70,7 +70,7 @@ contract Lottery {
     }
 
     // queue에 push 하는 함수
-    function pushBet(byte challenges) public returns (bool) {
+    function pushBet(byte challenges) internal returns (bool) {
         BetInfo memory b;
         b.bettor = msg.sender;
         b.answerBlockNumber = block.number + BET_BLOCK_INTERVAL;
@@ -82,7 +82,7 @@ contract Lottery {
     }
 
     // queue에서 pop 하는 함수
-    function popBet(uint256 index) public returns (bool) {
+    function popBet(uint256 index) internal returns (bool) {
         // delete 하면 블록체인에 데이터를 더이상 저장하지 않겠다(state database에서 값들을 없애겠다)는 의미로서 일정량의 가스를 돌려받는다.
         delete _bets[index];
         return true;
