@@ -16,5 +16,4 @@ contract Lottery {
     function getSomeValue() public pure returns (uint256 value) {
         return 5;
     }
-
 }
