@@ -79,6 +79,8 @@ contract Lottery {
         _bets[_tail] = b;
         _tail++;
         // tail값을 safeMath로 해줘도 되긴 하는데 여기서는 오버플로우 값을 검사 안해도 되기 때문에 할 필요는 없을 것 같다.
+        
+        return true;
     }
 
     // queue에서 pop 하는 함수
