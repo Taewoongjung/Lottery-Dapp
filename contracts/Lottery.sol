@@ -21,6 +21,7 @@ contract Lottery {
     uint256 constant internal BET_AMOUNT = 5 * 10 ** 15; // 0.005ETH
     uint256 private _pot;
 
+    enum BlockStatus {Checkable, NotRevealed, BlockLimitPassed}
     event BET(uint256 index, address bettor, uint256 amount, byte challenges, uint256 answerBlockNumber);
 
     /* 
@@ -57,10 +58,45 @@ contract Lottery {
     }
         // save the bet to the queue
 
-    // Distribute
-        // check the answer
-            // if the answer right 
-                //insert
+    // Distribute - 베팅을 하면 정답을 맞춘 사람에게는 돈을 돌려주고 아니면 돈을 pot에 갖는 시스템
+    function distribute() public {
+        uint256 cur;
+        BetInfo memory b;
+        BlockStatus currentBlockStatus;
+        for(cur=_head;cur<_tail;cur++) {
+            b = _bets[cur];
+            currentBlockStatus = getBlockStatus((b.answerBlockNumber));
+
+            if(currentBlockStatus == BlockStatus.Checkable) {
+
+            }
+
+            if(currentBlockStatus == BlockStatus.NotRevealed) {
+                break;
+            }
+
+            if(currentBlockStatus == BlockStatus.BlockLimitPassed) {
+                
+            }
+            popBet(cur);
+        }
+        
+    }    
+    
+    function getBlockStatus(uint256 answerBlockNumber) internal view returns(BlockStatus) {
+        if(block.number > answerBlockNumber && block.number < BLOCK_LIMIT + answerBlockNumber) {
+            return BlockStatus.Checkable;
+        }
+
+        if(block.number > answerBlockNumber) {
+            return BlockStatus.NotRevealed;
+        }
+
+        if(block.number > answerBlockNumber + BLOCK_LIMIT) {
+            return BlockStatus.BlockLimitPassed;
+        }
+        return BlockStatus.BlockLimitPassed;
+    }
 
     function getBetInfo(uint256 index) public view returns (uint256 answerBlockNumber, address bettor, byte challenges) {
         BetInfo memory b = _bets[index];
@@ -72,12 +108,12 @@ contract Lottery {
     // queue에 push 하는 함수
     function pushBet(byte challenges) internal returns (bool) {
         BetInfo memory b;
-        b.bettor = msg.sender;
-        b.answerBlockNumber = block.number + BET_BLOCK_INTERVAL;
-        b.challenges = challenges;
+        b.bettor = msg.sender; // 20 byte
+        b.answerBlockNumber = block.number + BET_BLOCK_INTERVAL; // 32 byte = 20000 gas
+        b.challenges = challenges; // byte  b.bettor의 20 byte와 합쳐서 = 20000 gas
 
         _bets[_tail] = b;
-        _tail++;
+        _tail++; // 32byte 값 변화 = 20000 gas
         // tail값을 safeMath로 해줘도 되긴 하는데 여기서는 오버플로우 값을 검사 안해도 되기 때문에 할 필요는 없을 것 같다.
         
         return true;
